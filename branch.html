@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一對一會議記錄</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --ink-light: #4a4a6a;
+    --paper: #faf8f4;
+    --cream: #f0ece3;
+    --accent: #c4783a;
+    --accent-light: #e8c49a;
+    --accent-pale: #f7ede0;
+    --rule: #d8d0c4;
+    --green: #3a7c5a;
+    --green-pale: #e0f0e8;
+    --red: #c44a3a;
+    --red-pale: #f5e8e6;
+    --blue: #3a5a8c;
+    --blue-pale: #e6edf7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    font-family: 'Noto Sans TC', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--paper);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+    animation: pageLoad 0.6s ease-out;
+  }
+
+  @keyframes pageLoad {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Header ── */
+  .doc-header {
+    background: var(--ink);
+    color: white;
+    padding: 48px 56px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .doc-header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: rgba(196,120,58,0.18);
+  }
+
+  .doc-header::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 200px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(196,120,58,0.10);
+  }
+
+  .doc-type {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    margin-bottom: 16px;
+  }
+
+  .doc-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .meta-item label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .meta-item input {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    padding: 6px 0;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .meta-item input::placeholder { color: rgba(255,255,255,0.35); }
+  .meta-item input:focus { border-bottom-color: var(--accent); }
+
+  /* ── Body ── */
+  .doc-body { padding: 0 56px 56px; }
+
+  /* ── Section ── */
+  .section {
+    margin-top: 44px;
+    animation: sectionLoad 0.5s ease-out both;
+  }
+
+  .section:nth-child(1) { animation-delay: 0.1s; }
+  .section:nth-child(2) { animation-delay: 0.2s; }
+  .section:nth-child(3) { animation-delay: 0.3s; }
+  .section:nth-child(4) { animation-delay: 0.4s; }
+
+  @keyframes sectionLoad {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .icon-orange { background: var(--accent-pale); }
+  .icon-green  { background: var(--green-pale); }
+  .icon-blue   { background: var(--blue-pale); }
+  .icon-red    { background: var(--red-pale); }
+
+  .section-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .section-subtitle {
+    font-size: 11px;
+    color: var(--ink-light);
+    font-weight: 300;
+    margin-top: 2px;
+  }
+
+  /* ── Todo Table ── */
+  .todo-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  .todo-table th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ink-light);
+    padding: 8px 12px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .todo-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: middle;
+  }
+
+  .todo-table tr:last-child td { border-bottom: none; }
+
+  .todo-table tr:hover td { background: rgba(196,120,58,0.04); }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .status-done    { background: var(--green-pale); color: var(--green); }
+  .status-ongoing { background: var(--blue-pale);  color: var(--blue); }
+  .status-overdue { background: var(--red-pale);   color: var(--red); }
+  .status-pending { background: var(--cream);      color: var(--ink-light); border: 1px solid var(--rule); }
+
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* ── Goal Items ── */
+  .goal-list { display: flex; flex-direction: column; gap: 14px; }
+
+  .goal-item {
+    padding: 16px 18px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    transition: box-shadow 0.2s;
+  }
+
+  .goal-item:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+
+  .goal-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+
+  .goal-number {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    min-width: 24px;
+  }
+
+  .goal-text-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    background: transparent;
+    border-bottom: 1px dashed var(--rule);
+    padding-bottom: 4px;
+    width: 100%;
+  }
+
+  .goal-text-input::placeholder { color: var(--rule); }
+
+  .progress-row { display: flex; align-items: center; gap: 12px; }
+
+  .progress-label {
+    font-size: 11px;
+    color: var(--ink-light);
+    white-space: nowrap;
+  }
+
+  .progress-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: var(--cream);
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-pct {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 34px;
+    text-align: right;
+  }
+
+  /* ── Discussion Items ── */
+  .discussion-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .discussion-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .disc-bullet {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent-pale);
+    border: 1.5px solid var(--accent-light);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .disc-input {
+    flex: 1;
+    border: none;
+    border-bottom: 1px dashed var(--rule);
+    outline: none;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: transparent;
+    padding-bottom: 6px;
+    line-height: 1.6;
+  }
+
+  .disc-input::placeholder { color: var(--rule); }
+
+  /* ── Notes Area ── */
+  .notes-area {
+    width: 100%;
+    min-height: 90px;
+    border: 1px dashed var(--rule);
+    border-radius: 6px;
+    padding: 14px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--paper);
+    outline: none;
+    resize: vertical;
+    line-height: 1.8;
+  }
+
+  .notes-area::placeholder { color: var(--rule); }
+
+  /* ── Action Plan ── */
+  .action-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  .action-table th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ink-light);
+    padding: 8px 12px;
+    background: var(--ink);
+    color: var(--accent-light);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .action-table th:first-child { border-radius: 4px 0 0 0; }
+  .action-table th:last-child  { border-radius: 0 4px 0 0; }
+
+  .action-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: middle;
+  }
+
+  .action-table tr:last-child td { border-bottom: none; }
+  .action-table tr:hover td { background: rgba(196,120,58,0.04); }
+
+  .action-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px dashed var(--rule);
+    outline: none;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: transparent;
+    padding-bottom: 4px;
+  }
+
+  .action-input::placeholder { color: var(--rule); }
+
+  .priority-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .priority-high   { background: var(--red-pale);   color: var(--red); }
+  .priority-medium { background: var(--accent-pale); color: var(--accent); }
+  .priority-low    { background: var(--green-pale);  color: var(--green); }
+
+  /* ── Add Row Button ── */
+  .add-row-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-light);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px 12px;
+    transition: color 0.2s;
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  .add-row-btn:hover { color: var(--accent); }
+  .add-row-btn span { font-size: 16px; line-height: 1; }
+
+  /* ── Footer ── */
+  .doc-footer {
+    margin-top: 52px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sign-block {
+    text-align: center;
+    flex: 1;
+  }
+
+  .sign-divider { width: 40px; border-top: 1px solid var(--rule); margin: 0 auto 8px; }
+
+  .sign-label {
+    font-size: 11px;
+    color: var(--ink-light);
+    letter-spacing: 1px;
+  }
+
+  .sign-name-input {
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    outline: none;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 15px;
+    color: var(--ink);
+    background: transparent;
+    text-align: center;
+    width: 140px;
+    margin-bottom: 8px;
+    padding: 4px 0;
+  }
+
+  .sign-name-input::placeholder { color: var(--rule); }
+
+  .footer-sep {
+    width: 1px;
+    height: 60px;
+    background: var(--rule);
+    flex-shrink: 0;
+    margin: 0 32px;
+  }
+
+  /* ── Print ── */
+  .print-btn {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    background: var(--ink);
+    color: white;
+    border: none;
+    padding: 13px 22px;
+    border-radius: 40px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .print-btn:hover {
+    background: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(196,120,58,0.4);
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .page { box-shadow: none; }
+    .print-btn { display: none; }
+    .meta-item input,
+    .goal-text-input,
+    .disc-input,
+    .action-input,
+    .notes-area,
+    .sign-name-input { border-color: #ccc; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="doc-header">
+    <div class="doc-type">One-on-One Meeting · 主管與員工</div>
+    <div class="doc-title">一對一會議記錄</div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <label>日期</label>
+        <input type="date" id="meetDate">
+      </div>
+      <div class="meta-item">
+        <label>主管</label>
+        <input type="text" placeholder="姓名 / 職稱">
+      </div>
+      <div class="meta-item">
+        <label>員工</label>
+        <input type="text" placeholder="姓名 / 職稱">
+      </div>
+      <div class="meta-item">
+        <label>時間</label>
+        <input type="text" placeholder="例：14:00 – 14:30">
+      </div>
+      <div class="meta-item">
+        <label>地點 / 方式</label>
+        <input type="text" placeholder="例：會議室 A / 視訊">
+      </div>
+      <div class="meta-item">
+        <label>下次會議</label>
+        <input type="date">
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="doc-body">
+
+    <!-- 1. 上次待辦事項追蹤 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-orange">📋</div>
+        <div>
+          <div class="section-title">上次待辦事項追蹤</div>
+          <div class="section-subtitle">Review previous action items</div>
+        </div>
+      </div>
+      <table class="todo-table">
+        <thead>
+          <tr>
+            <th style="width:42%">事項</th>
+            <th style="width:18%">負責人</th>
+            <th style="width:16%">截止日</th>
+            <th style="width:24%">狀態</th>
+          </tr>
+        </thead>
+        <tbody id="todoBody">
+          <tr>
+            <td><input class="action-input" type="text" placeholder="輸入待辦事項…"></td>
+            <td><input class="action-input" type="text" placeholder="負責人"></td>
+            <td><input class="action-input" type="date"></td>
+            <td>
+              <select class="status-badge status-ongoing" onchange="updateStatus(this)" style="border:none;outline:none;background:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:500;">
+                <option value="ongoing">🔵 進行中</option>
+                <option value="done">✅ 已完成</option>
+                <option value="overdue">🔴 已逾期</option>
+                <option value="pending">⏳ 待開始</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td><input class="action-input" type="text" placeholder="輸入待辦事項…"></td>
+            <td><input class="action-input" type="text" placeholder="負責人"></td>
+            <td><input class="action-input" type="date"></td>
+            <td>
+              <select class="status-badge status-done" onchange="updateStatus(this)" style="border:none;outline:none;background:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:500;">
+                <option value="done">✅ 已完成</option>
+                <option value="ongoing">🔵 進行中</option>
+                <option value="overdue">🔴 已逾期</option>
+                <option value="pending">⏳ 待開始</option>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td><input class="action-input" type="text" placeholder="輸入待辦事項…"></td>
+            <td><input class="action-input" type="text" placeholder="負責人"></td>
+            <td><input class="action-input" type="date"></td>
+            <td>
+              <select class="status-badge status-pending" onchange="updateStatus(this)" style="border:none;outline:none;background:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:500;">
+                <option value="pending">⏳ 待開始</option>
+                <option value="done">✅ 已完成</option>
+                <option value="ongoing">🔵 進行中</option>
+                <option value="overdue">🔴 已逾期</option>
+              </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="add-row-btn" onclick="addTodoRow()"><span>＋</span> 新增事項</button>
+    </div>
+
+    <!-- 2. 目標與進度 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-green">🎯</div>
+        <div>
+          <div class="section-title">目標與進度</div>
+          <div class="section-subtitle">Goals & progress update</div>
+        </div>
+      </div>
+      <div class="goal-list" id="goalList">
+        <div class="goal-item">
+          <div class="goal-row">
+            <div class="goal-number">01</div>
+            <input class="goal-text-input" type="text" placeholder="輸入目標名稱…">
+          </div>
+          <div class="progress-row">
+            <span class="progress-label">完成度</span>
+            <div class="progress-bar-wrap" onclick="adjustProgress(this)">
+              <div class="progress-fill" style="width:60%"></div>
+            </div>
+            <span class="progress-pct">60%</span>
+          </div>
+        </div>
+        <div class="goal-item">
+          <div class="goal-row">
+            <div class="goal-number">02</div>
+            <input class="goal-text-input" type="text" placeholder="輸入目標名稱…">
+          </div>
+          <div class="progress-row">
+            <span class="progress-label">完成度</span>
+            <div class="progress-bar-wrap" onclick="adjustProgress(this)">
+              <div class="progress-fill" style="width:30%"></div>
+            </div>
+            <span class="progress-pct">30%</span>
+          </div>
+        </div>
+      </div>
+      <button class="add-row-btn" onclick="addGoal()" style="margin-top:8px"><span>＋</span> 新增目標</button>
+    </div>
+
+    <!-- 3. 問題與討論 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-blue">💬</div>
+        <div>
+          <div class="section-title">問題與討論</div>
+          <div class="section-subtitle">Issues & discussion topics</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-light);font-weight:600;margin-bottom:10px;">員工提出</div>
+        <div class="discussion-list" id="empDiscList">
+          <div class="discussion-item">
+            <div class="disc-bullet">E</div>
+            <input class="disc-input" type="text" placeholder="員工想討論的問題或分享的事項…">
+          </div>
+          <div class="discussion-item">
+            <div class="disc-bullet">E</div>
+            <input class="disc-input" type="text" placeholder="員工想討論的問題或分享的事項…">
+          </div>
+        </div>
+        <button class="add-row-btn" onclick="addDiscussion('empDiscList','E')"><span>＋</span> 新增</button>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-light);font-weight:600;margin-bottom:10px;">主管提出</div>
+        <div class="discussion-list" id="mgrDiscList">
+          <div class="discussion-item">
+            <div class="disc-bullet" style="background:var(--blue-pale);border-color:#8aaad4;color:var(--blue);">M</div>
+            <input class="disc-input" type="text" placeholder="主管想討論的議題或回饋…">
+          </div>
+          <div class="discussion-item">
+            <div class="disc-bullet" style="background:var(--blue-pale);border-color:#8aaad4;color:var(--blue);">M</div>
+            <input class="disc-input" type="text" placeholder="主管想討論的議題或回饋…">
+          </div>
+        </div>
+        <button class="add-row-btn" onclick="addDiscussion('mgrDiscList','M','var(--blue-pale)','#8aaad4','var(--blue)')"><span>＋</span> 新增</button>
+      </div>
+
+      <div style="margin-top:20px">
+        <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-light);font-weight:600;margin-bottom:10px;">會議備註</div>
+        <textarea class="notes-area" placeholder="記錄討論重點、補充說明…"></textarea>
+      </div>
+    </div>
+
+    <!-- 4. 行動計畫 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-icon icon-red">🚀</div>
+        <div>
+          <div class="section-title">行動計畫</div>
+          <div class="section-subtitle">Next action items</div>
+        </div>
+      </div>
+      <table class="action-table">
+        <thead>
+          <tr>
+            <th style="width:40%">行動事項</th>
+            <th style="width:18%">負責人</th>
+            <th style="width:18%">截止日</th>
+            <th style="width:24%">優先度</th>
+          </tr>
+        </thead>
+        <tbody id="actionBody">
+          <tr>
+            <td><input class="action-input" type="text" placeholder="輸入行動事項…"></td>
+            <td><input class="action-input" type="text" placeholder="負責人"></td>
+            <td><input class="action-input" type="date"></td>
+            <td><span class="priority-tag priority-high" onclick="cyclePriority(this)">高</span></td>
+          </tr>
+          <tr>
+            <td><input class="action-input" type="text" placeholder="輸入行動事項…"></td>
+            <td><input class="action-input" type="text" placeholder="負責人"></td>
+            <td><input class="action-input" type="date"></td>
+            <td><span class="priority-tag priority-medium" onclick="cyclePriority(this)">中</span></td>
+          </tr>
+          <tr>
+            <td><input class="action-input" type="text" placeholder="輸入行動事項…"></td>
+            <td><input class="action-input" type="text" placeholder="負責人"></td>
+            <td><input class="action-input" type="date"></td>
+            <td><span class="priority-tag priority-low" onclick="cyclePriority(this)">低</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="add-row-btn" onclick="addActionRow()"><span>＋</span> 新增行動</button>
+    </div>
+
+    <!-- Footer -->
+    <div class="doc-footer">
+      <div class="sign-block">
+        <input class="sign-name-input" type="text" placeholder="主管姓名">
+        <div class="sign-divider"></div>
+        <div class="sign-label">主管簽名</div>
+      </div>
+      <div class="footer-sep"></div>
+      <div class="sign-block">
+        <input class="sign-name-input" type="text" placeholder="員工姓名">
+        <div class="sign-divider"></div>
+        <div class="sign-label">員工簽名</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<button class="print-btn" onclick="window.print()">🖨️ 列印 / 儲存 PDF</button>
+
+<script>
+  // Set today's date
+  document.getElementById('meetDate').valueAsDate = new Date();
+
+  // Status color map
+  function updateStatus(sel) {
+    sel.className = 'status-badge';
+    const map = { done:'status-done', ongoing:'status-ongoing', overdue:'status-overdue', pending:'status-pending' };
+    sel.classList.add(map[sel.value] || 'status-pending');
+  }
+
+  // Priority cycle
+  const priorities = [
+    { cls:'priority-high',   label:'高' },
+    { cls:'priority-medium', label:'中' },
+    { cls:'priority-low',    label:'低' },
+  ];
+  function cyclePriority(el) {
+    const cur = priorities.findIndex(p => el.classList.contains(p.cls));
+    const next = priorities[(cur + 1) % priorities.length];
+    el.className = 'priority-tag ' + next.cls;
+    el.textContent = next.label;
+  }
+
+  // Progress bar click
+  function adjustProgress(bar) {
+    const rect = bar.getBoundingClientRect();
+    bar.addEventListener('click', function handler(e) {
+      const pct = Math.round(((e.clientX - bar.getBoundingClientRect().left) / bar.offsetWidth) * 100);
+      bar.querySelector('.progress-fill').style.width = pct + '%';
+      bar.closest('.goal-item').querySelector('.progress-pct').textContent = pct + '%';
+    }, { once: true });
+    // re-attach permanent listener
+    bar.onclick = function(e) {
+      const pct = Math.round(((e.clientX - bar.getBoundingClientRect().left) / bar.offsetWidth) * 100);
+      bar.querySelector('.progress-fill').style.width = pct + '%';
+      bar.closest('.goal-item').querySelector('.progress-pct').textContent = pct + '%';
+    };
+  }
+
+  // Init all progress bars
+  document.querySelectorAll('.progress-bar-wrap').forEach(bar => {
+    bar.onclick = function(e) {
+      const pct = Math.round(((e.clientX - bar.getBoundingClientRect().left) / bar.offsetWidth) * 100);
+      bar.querySelector('.progress-fill').style.width = pct + '%';
+      bar.closest('.goal-item').querySelector('.progress-pct').textContent = pct + '%';
+    };
+  });
+
+  // Add todo row
+  function addTodoRow() {
+    const tbody = document.getElementById('todoBody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input class="action-input" type="text" placeholder="輸入待辦事項…"></td>
+      <td><input class="action-input" type="text" placeholder="負責人"></td>
+      <td><input class="action-input" type="date"></td>
+      <td>
+        <select class="status-badge status-pending" onchange="updateStatus(this)" style="border:none;outline:none;background:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:500;">
+          <option value="pending">⏳ 待開始</option>
+          <option value="done">✅ 已完成</option>
+          <option value="ongoing">🔵 進行中</option>
+          <option value="overdue">🔴 已逾期</option>
+        </select>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+
+  // Add goal
+  let goalCount = 2;
+  function addGoal() {
+    goalCount++;
+    const num = String(goalCount).padStart(2,'0');
+    const div = document.createElement('div');
+    div.className = 'goal-item';
+    div.innerHTML = `
+      <div class="goal-row">
+        <div class="goal-number">${num}</div>
+        <input class="goal-text-input" type="text" placeholder="輸入目標名稱…">
+      </div>
+      <div class="progress-row">
+        <span class="progress-label">完成度</span>
+        <div class="progress-bar-wrap">
+          <div class="progress-fill" style="width:0%"></div>
+        </div>
+        <span class="progress-pct">0%</span>
+      </div>`;
+    document.getElementById('goalList').appendChild(div);
+    div.querySelector('.progress-bar-wrap').onclick = function(e) {
+      const bar = this;
+      const pct = Math.round(((e.clientX - bar.getBoundingClientRect().left) / bar.offsetWidth) * 100);
+      bar.querySelector('.progress-fill').style.width = pct + '%';
+      bar.closest('.goal-item').querySelector('.progress-pct').textContent = pct + '%';
+    };
+  }
+
+  // Add discussion
+  function addDiscussion(listId, letter, bg, border, color) {
+    bg = bg || 'var(--accent-pale)';
+    border = border || 'var(--accent-light)';
+    color = color || 'var(--accent)';
+    const list = document.getElementById(listId);
+    const div = document.createElement('div');
+    div.className = 'discussion-item';
+    div.innerHTML = `
+      <div class="disc-bullet" style="background:${bg};border-color:${border};color:${color};">${letter}</div>
+      <input class="disc-input" type="text" placeholder="輸入討論事項…">`;
+    list.appendChild(div);
+  }
+
+  // Add action row
+  function addActionRow() {
+    const tbody = document.getElementById('actionBody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input class="action-input" type="text" placeholder="輸入行動事項…"></td>
+      <td><input class="action-input" type="text" placeholder="負責人"></td>
+      <td><input class="action-input" type="date"></td>
+      <td><span class="priority-tag priority-medium" onclick="cyclePriority(this)">中</span></td>`;
+    tbody.appendChild(tr);
+  }
+</script>
+</body>
+</html>
